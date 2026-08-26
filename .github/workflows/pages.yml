@@ -1,8 +1,6 @@
 name: Prepare GitHub Pages
 
 on:
-  push:
-    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -14,14 +12,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Reconstruct application
+      - name: Verify staged payload
         shell: bash
         run: |
           set -euo pipefail
           cat .payload/part* | base64 --decode | gzip --decompress > reconstructed.html
           echo "bytes=$(wc -c < reconstructed.html)"
-          echo "data_images=$(grep -o 'data:image' reconstructed.html | wc -l)"
-          echo "beta_markers=$(grep -o 'DEMO_BETA' reconstructed.html | wc -l)"
-          echo "devoice_markers=$(grep -o 'devoice' reconstructed.html | wc -l)"
           grep -q '<!DOCTYPE html>' reconstructed.html
           grep -q '絵教材 Presenter' reconstructed.html
