@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use A-5 Picture Material Presenter in research or teaching publications, please cite this software."
+title: "esaKITs A-5 絵教材 Presenter (Picture Material Presenter)"
+type: software
+authors:
+  - family-names: "Esaki"
+    given-names: "Tetsuya"
+    affiliation: "University of Yamanashi"
+version: "0.8.7"
+date-released: "2026-08-26"
