@@ -1,4 +1,4 @@
-name: Deploy GitHub Pages
+name: Prepare GitHub Pages
 
 on:
   push:
@@ -7,30 +7,21 @@ on:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
 
 jobs:
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+  verify:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: .
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Reconstruct application
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .payload/part* | base64 --decode | gzip --decompress > reconstructed.html
+          echo "bytes=$(wc -c < reconstructed.html)"
+          echo "data_images=$(grep -o 'data:image' reconstructed.html | wc -l)"
+          echo "beta_markers=$(grep -o 'DEMO_BETA' reconstructed.html | wc -l)"
+          echo "devoice_markers=$(grep -o 'devoice' reconstructed.html | wc -l)"
+          grep -q '<!DOCTYPE html>' reconstructed.html
+          grep -q '絵教材 Presenter' reconstructed.html
