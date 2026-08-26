@@ -1,0 +1,2 @@
+filename,page,kana,kanji,ruby,extra,highlight,pos,accent_pattern,accent_drop,accent_source,accent_variants,lemma,reading,conj_type,group,forms,forms_kana,analysis_source,analysis_confidence,card_code,devoice_vowel,devoice_mora,devoice_index,devoice_env,devoice_reading,devoice_source
+001_例.jpg,,ききます,聞きます,聞[き]きます,,,動詞I,0,0,手動（β課）,,聞く,きく,五段,I,"{""masu"":""聞きます"",""dictionary"":""聞く"",""nai"":""聞かない"",""te"":""聞いて"",""ta"":""聞いた""}","{""masu"":""ききます"",""dictionary"":""きく"",""nai"":""きかない"",""te"":""きいて"",""ta"":""きいた""}",β課・無声化環境デモ,high,V001,i,き,1,k＿k,きく,手動（β課・無声化環境）
