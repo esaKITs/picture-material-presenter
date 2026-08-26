@@ -44,6 +44,58 @@ jobs:
           grep -q 'esaKITs A-5 絵教材 Presenter' _site/index.html
           grep -q 'app/loader.js' _site/index.html
           grep -q 'devoice-target' _site/app/styles.css
+
+          cat > _site/app/menu-fix.js <<'EOF'
+          (()=>{
+            function bindPanelMenu(){
+              const oldMenu=document.getElementById('menuBtn');
+              const panel=document.getElementById('sidePanel');
+              const scrim=document.getElementById('panelScrim');
+              if(!oldMenu||!panel)return false;
+              const menu=oldMenu.cloneNode(true);
+              oldMenu.replaceWith(menu);
+              const setOpen=(open)=>{
+                panel.classList.toggle('open',open);
+                scrim?.classList.toggle('show',open);
+                menu.setAttribute('aria-expanded',open?'true':'false');
+                if(open){
+                  let tab='materials';
+                  try{tab=localStorage.getItem('a5.panelTab')||'materials'}catch(e){}
+                  if(tab==='answer')tab='content';
+                  try{window.a5ShowPanelTab?.(tab,false)}catch(e){}
+                }
+              };
+              menu.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();setOpen(!panel.classList.contains('open'))});
+              menu.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setOpen(!panel.classList.contains('open'))}});
+              const close=document.getElementById('panelCloseBtn');
+              if(close)close.onclick=e=>{e.preventDefault();e.stopPropagation();setOpen(false)};
+              if(scrim)scrim.onclick=e=>{e.preventDefault();e.stopPropagation();setOpen(false)};
+              menu.setAttribute('aria-controls','sidePanel');
+              menu.setAttribute('aria-expanded',panel.classList.contains('open')?'true':'false');
+              return true;
+            }
+            let tries=0;
+            const timer=setInterval(()=>{
+              tries++;
+              if((typeof window.setPanel==='function'||window.a5ShowPanelTab)&&bindPanelMenu())clearInterval(timer);
+              else if(tries>200){clearInterval(timer);bindPanelMenu()}
+            },50);
+          })();
+          EOF
+
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('_site/index.html')
+          s=p.read_text(encoding='utf-8')
+          tag='<script src="app/menu-fix.js?v=1"></script>'
+          if tag not in s:
+              s=s.replace('</body>',tag+'</body>')
+          p.write_text(s,encoding='utf-8')
+          PY
+
+          test -f _site/app/menu-fix.js
+          grep -q 'app/menu-fix.js?v=1' _site/index.html
+          grep -q 'bindPanelMenu' _site/app/menu-fix.js
           echo "site_files=$(find _site -type f | wc -l)"
           echo "index_bytes=$(wc -c < _site/index.html)"
 
@@ -55,5 +107,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-
-# deployment trigger: 2026-08-27
