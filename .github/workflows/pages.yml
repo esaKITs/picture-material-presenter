@@ -1,22 +1,57 @@
-name: Prepare GitHub Pages
+name: Deploy GitHub Pages
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
 
 jobs:
-  verify:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Verify staged payload
+
+      - name: Reconstruct and verify public site
         shell: bash
         run: |
           set -euo pipefail
-          cat .payload/part* | base64 --decode | gzip --decompress > reconstructed.html
-          echo "bytes=$(wc -c < reconstructed.html)"
-          grep -q '<!DOCTYPE html>' reconstructed.html
-          grep -q '絵教材 Presenter' reconstructed.html
+          mkdir -p _site
+          cat \
+            .payload/part00 .payload/part01 .payload/part02 .payload/part03 .payload/part04 \
+            .payload/part05 .payload/part06 .payload/part07 .payload/part08 .payload/part09 \
+            .payload_fix/p10_00 .payload_fix/p10_01 .payload_fix/p10_02 .payload_fix/p10_03 .payload_fix/p10_04 .payload_fix/p10_05 \
+            .payload_fix/p11_00 .payload_fix/p11_01 .payload_fix/p11_02 .payload_fix/p11_03 \
+            | base64 --decode | gzip --decompress > /tmp/a5-site.tar
+          echo "ad5cb68620d61ea5860013a0e0d16006edf67038358d32d2ab91b86df67c4622  /tmp/a5-site.tar" | sha256sum --check --strict
+          tar -xf /tmp/a5-site.tar -C _site
+          test -f _site/index.html
+          test -f _site/app/loader.js
+          test -f _site/app/styles.css
+          test -f _site/demo_beta/beta_lesson_list.csv
+          grep -q 'esaKITs A-5 絵教材 Presenter' _site/index.html
+          grep -q 'app/loader.js' _site/index.html
+          grep -q 'devoice-target' _site/app/styles.css
+          echo "site_files=$(find _site -type f | wc -l)"
+          echo "index_bytes=$(wc -c < _site/index.html)"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
