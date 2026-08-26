@@ -87,14 +87,19 @@ jobs:
           from pathlib import Path
           p=Path('_site/index.html')
           s=p.read_text(encoding='utf-8')
-          tag='<script src="app/menu-fix.js?v=1"></script>'
+          style='<style id="a5-pages-layout-fix">#a5-root{height:100%;min-height:100vh}</style>'
+          if style not in s:
+              s=s.replace('</head>',style+'</head>')
+          tag='<script src="app/menu-fix.js?v=2"></script>'
+          s=s.replace('<script src="app/menu-fix.js?v=1"></script>','')
           if tag not in s:
               s=s.replace('</body>',tag+'</body>')
           p.write_text(s,encoding='utf-8')
           PY
 
           test -f _site/app/menu-fix.js
-          grep -q 'app/menu-fix.js?v=1' _site/index.html
+          grep -q 'a5-pages-layout-fix' _site/index.html
+          grep -q 'app/menu-fix.js?v=2' _site/index.html
           grep -q 'bindPanelMenu' _site/app/menu-fix.js
           echo "site_files=$(find _site -type f | wc -l)"
           echo "index_bytes=$(wc -c < _site/index.html)"
